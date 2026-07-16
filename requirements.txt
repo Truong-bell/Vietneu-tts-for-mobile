@@ -1,2 +1,5 @@
 streamlit
-gradio_client
+edge-tts
+gTTS
+SpeechRecognition
+pydub
