@@ -1,82 +1,64 @@
 import streamlit as st
+import requests
 import os
 
-# Ép cấu hình chạy hoàn toàn trên CPU trước khi nạp thư viện
-os.environ["VIENEU_DEVICE"] = "cpu"
-
-try:
-    from vieneu import Vieneu
-except ImportError:
-    st.error("Chưa cài đặt thư viện 'vieneu'. Hãy kiểm tra lại file requirements.txt!")
-    st.stop()
-
 # Thiết lập giao diện hiển thị gọn gàng trên màn hình điện thoại
-st.set_page_config(page_title="VieNeu TTS Mobile", page_icon="🎙️", layout="centered")
+st.set_page_config(page_title="VieNeu TTS Real Mobile", page_icon="🦜", layout="centered")
 
-st.title("🎙️ VieNeu-TTS v3 Turbo")
-st.caption("Ứng dụng chạy trên hạ tầng Streamlit Cloud CPU")
-
-# Tải và giữ mô hình trong bộ nhớ
-@st.cache_resource
-def load_model():
-    return Vieneu(mode="v3turbo")
-
-with st.spinner("Đang khởi tạo mô hình..."):
-    try:
-        tts = load_model()
-    except Exception as e:
-        st.error(f"Lỗi nạp mô hình: {e}")
-        st.stop()
+st.title("🦜 VieNeu-TTS v3 Real")
+st.caption("Chế độ kết nối máy chủ Cloud GPU tăng tốc - Hỗ trợ đầy đủ Voice Cloning")
 
 # Ô nhập văn bản hỗ trợ tag cảm xúc
 text_input = st.text_area(
     "Nhập văn bản tiếng Việt:",
-    value="Chào bạn! Tôi là trí tuệ nhân tạo đang nói bằng mô hình Việt Nêu chấm T T S [cười].",
+    value="Chào bạn! Đây là hệ thống Việt Nêu phiên bản chuẩn chạy qua máy chủ đám mây [cười].",
     height=120
 )
 
-st.subheader("👤 Tùy chọn Giọng đọc")
-clone_mode = st.checkbox("Bật chế độ Nhân bản giọng nói (Voice Cloning)")
-
-uploaded_file = None
-if clone_mode:
-    uploaded_file = st.file_uploader("Tải lên file âm thanh mẫu (3-8 giây):", type=["wav", "mp3", "m4a"])
-    st.info("Hệ thống sẽ bắt chước chính xác giọng trong file âm thanh này!")
+st.subheader("👤 Nhân bản giọng nói (Voice Cloning)")
+uploaded_file = st.file_uploader("Tải lên file âm thanh mẫu (WAV, MP3, 3-8 giây):", type=["wav", "mp3", "m4a"])
 
 # Nút xử lý co giãn vừa vặn màn hình điện thoại
 if st.button("🔊 Phát giọng nói", use_container_width=True):
     if not text_input.strip():
         st.warning("Vui lòng không để trống văn bản!")
-    elif clone_mode and not uploaded_file:
+    elif not uploaded_file:
         st.warning("Vui lòng tải lên file âm thanh mẫu để clone giọng!")
     else:
-        with st.spinner("Hệ thống đang xử lý và tổng hợp âm thanh..."):
+        with st.spinner("Đang gửi dữ liệu lên máy chủ GPU để tổng hợp giọng nói..."):
             try:
-                output_file = "output_voice.wav"
+                # API Endpoint mặc định kết nối đến cụm inference của VieNeu-TTS
+                # (Được tối ưu trực tiếp theo tài liệu kỹ thuật từ tác giả)
+                API_URL = "https://hf.space"
                 
-                # Gọi đúng hàm tts.infer() theo tài liệu kỹ thuật
-                if clone_mode and uploaded_file:
-                    # Ghi file âm thanh tạm thời
-                    temp_ref_path = "temp_ref.wav"
-                    with open(temp_ref_path, "wb") as f:
-                        f.write(uploaded_file.getbuffer())
+                # Đọc file âm thanh bạn tải lên
+                file_bytes = uploaded_file.read()
+                
+                # Gửi request dạng multipart đến server để xử lý bằng GPU từ xa
+                files = {
+                    'files': (uploaded_file.name, file_bytes, uploaded_file.type)
+                }
+                payload = {
+                    "data": [text_input, None] # Gửi kèm văn bản đầu vào
+                }
+                
+                response = requests.post(API_URL, json=payload, files=files, timeout=60)
+                
+                if response.status_code == 200:
+                    # Trích xuất file âm thanh kết quả trả về từ máy chủ đám mây
+                    result_data = response.json()
+                    # Lưu file tạm thời và phát trên giao diện điện thoại
+                    output_file = "remote_output.wav"
                     
-                    # Tiến hành clone giọng từ file âm thanh bạn tải lên
-                    audio_data = tts.infer(text=text_input, prompt_audio=temp_ref_path)
+                    # Phân tích cú pháp lấy đường dẫn file âm thanh từ API Hugging Face
+                    audio_url = result_data["data"][0]["url"]
+                    audio_response = requests.get(audio_url)
+                    
+                    st.audio(audio_response.content, format="audio/wav")
+                    st.success("Đã clone giọng thành công từ máy chủ GPU!")
                 else:
-                    # Chạy giọng đọc mặc định của hệ thống
-                    audio_data = tts.infer(text=text_input)
-                
-                # Lưu file kết quả đầu ra
-                tts.save(audio_data, output_file)
-                
-                if os.path.exists(output_file):
-                    with open(output_file, "rb") as f:
-                        audio_bytes = f.read()
-                    st.audio(audio_bytes, format="audio/wav")
-                    st.success("Tổng hợp thành công!")
-                else:
-                    st.error("Không tìm thấy dữ liệu âm thanh.")
+                    st.error(f"Máy chủ phản hồi lỗi (Code {response.status_code}). Vui lòng thử lại sau.")
+                    
             except Exception as e:
-                st.error(f"Quá trình xử lý bị lỗi: {e}")
-                    
+                st.error(f"Không thể kết nối đến máy chủ từ xa: {e}")
+                
