@@ -28,7 +28,7 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         margin-bottom: 0px;
     }
-    div[data-testid="stForm"], .stTextArea, .stSelectbox, div[data-testid="stExpander"], .stFileUploader {
+    div[data-testid="stForm"], .stTextArea, .stSelectbox, div[data-testid="stExpander"], .stFileUploader, div[data-testid="stSegmentedControl"] {
         background: rgba(255, 255, 255, 0.04) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 16px !important;
@@ -53,6 +53,17 @@ st.markdown("""
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 25px rgba(127, 0, 255, 0.7) !important;
     }
+    /* Làm nổi bật nút tùy chọn chế độ nhanh */
+    div[data-testid="stSegmentedControl"] button {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #a0a0d0 !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+    }
+    div[data-testid="stSegmentedControl"] button[aria-checked="true"] {
+        background: linear-gradient(45deg, #ff416c, #ff4b2b) !important;
+        color: white !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -61,17 +72,17 @@ st.markdown("<p style='text-align: center; color: #a0a0d0 !important; font-size:
 
 st.divider()
 
-# --- BỘ CHUYỂN ĐỔI CHỨC NĂNG LỘ DIỆN CHÍNH GIỮA MÀN HÌNH ---
-st.markdown("### 🛠️ LỰA CHỌN TÍNH NĂNG ỨNG DỤNG")
-current_page = st.selectbox(
-    "Bấm vào đây để chọn tính năng bạn muốn sử dụng:",
-    ["✨ Chữ thành Giọng nói (TTS)", "🔊 Giọng nói thành Chữ (STT)"]
+# --- KHU VỰC CHỌN CHẾ ĐỘ NHANH (SEGMENTED CONTROL LỘ DIỆN TRỰC TIẾP) ---
+current_page = st.segmented_control(
+    "⚡ CHỌN CHẾ ĐỘ SỬ DỤNG NHANH:",
+    options=["✨ Chữ thành Giọng nói (TTS)", "🔊 Giọng nói thành Chữ (STT)"],
+    default="✨ Chữ thành Giọng nói (TTS)"
 )
 
 st.divider()
 
 # ==================== TRANG 1: CHỮ THÀNH GIỌNG NÓI (TTS) ====================
-if "✨ Chữ thành Giọng nói" in current_page:
+if current_page == "✨ Chữ thành Giọng nói (TTS)":
     st.markdown("### ✨ CHUYỂN VĂN BẢN THÀNH GIỌNG NÓI")
     
     if "history" not in st.session_state: 
@@ -185,14 +196,6 @@ if "✨ Chữ thành Giọng nói" in current_page:
                 st.text(f"{i+1}. {hist_text[:100]}..." if len(hist_text) > 100 else f"{i+1}. {hist_text}")
 
 # ==================== TRANG 2: GIỌNG NÓI THÀNH CHỮ (STT) ====================
-elif "🔊 Giọng nói thành Chữ" in current_page:
+elif current_page == "🔊 Giọng nói thành Chữ (STT)":
     st.markdown("### 🔊 CHUYỂN GIỌNG NÓI THÀNH VĂN BẢN")
-    st.caption("Tải lên file ghi âm để rã băng thành chữ có chia mốc thời gian (Timestamp) chính xác từng giây.")
     
-    stt_lang = st.selectbox("🎯 Chọn ngôn ngữ nói trong file âm thanh:", ["Tiếng Việt (vi-VN)", "Tiếng Anh (en-US)", "Tiếng Hàn (ko-KR)", "Tiếng Nhật (ja-JP)"])
-    lang_code = "vi-VN"
-    if "Tiếng Anh" in stt_lang: lang_code = "en-US"
-    elif "Tiếng Hàn" in stt_lang: lang_code = "ko-KR"
-    elif "Tiếng Nhật" in stt_lang: lang_code = "ja-JP"
-
-                                                       
