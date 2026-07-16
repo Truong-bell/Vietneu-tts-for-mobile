@@ -13,6 +13,10 @@ st.set_page_config(
     layout="centered"
 )
 
+# Khởi tạo chế độ trang mặc định bằng Text-to-Speech (TTS)
+if "page_mode" not in st.session_state:
+    st.session_state.page_mode = "TTS"
+
 # Giao diện CSS tùy biến cao cấp (Dark Mode Premium Studio)
 st.markdown("""
     <style>
@@ -28,7 +32,7 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         margin-bottom: 0px;
     }
-    div[data-testid="stForm"], .stTextArea, .stSelectbox, div[data-testid="stExpander"], .stFileUploader, div[data-testid="stSegmentedControl"] {
+    div[data-testid="stForm"], .stTextArea, .stSelectbox, div[data-testid="stExpander"], .stFileUploader {
         background: rgba(255, 255, 255, 0.04) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 16px !important;
@@ -37,7 +41,18 @@ st.markdown("""
     h1, h2, h3, h4, p, span, label, th, td {
         color: #e0e0ff !important;
     }
-    div.stButton > button {
+    /* Thiết kế nút bấm chuyển đổi chức năng */
+    .nav-btn button {
+        width: 100% !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #a0a0d0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+        padding: 10px !important;
+    }
+    /* Nút chính tạo giọng nói phát sáng */
+    .action-btn button {
         background: linear-gradient(45deg, #ff007f, #7f00ff) !important;
         color: white !important;
         border: none !important;
@@ -46,44 +61,39 @@ st.markdown("""
         letter-spacing: 1px !important;
         padding: 12px 24px !important;
         border-radius: 12px !important;
-        transition: all 0.3s ease-in-out !important;
         box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4) !important;
-    }
-    div.stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 25px rgba(127, 0, 255, 0.7) !important;
-    }
-    /* Làm nổi bật nút tùy chọn chế độ nhanh */
-    div[data-testid="stSegmentedControl"] button {
-        background: rgba(255, 255, 255, 0.05) !important;
-        color: #a0a0d0 !important;
-        border-radius: 8px !important;
-        font-weight: bold !important;
-    }
-    div[data-testid="stSegmentedControl"] button[aria-checked="true"] {
-        background: linear-gradient(45deg, #ff416c, #ff4b2b) !important;
-        color: white !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<h1 class='studio-title'>🎙️ AI VOICE PRO STUDIO</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #a0a0d0 !important; font-size:14px; margin-bottom:20px;'>Hệ thống render âm thanh trí tuệ nhân tạo đa năng</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #a0a0d0 !important; font-size:14px; margin-bottom:20px;'>Hệ thống chuyển đổi Chữ thành Giọng & Giọng thành Chữ chuyên nghiệp</p>", unsafe_allow_html=True)
 
 st.divider()
 
-# --- KHU VỰC CHỌN CHẾ ĐỘ NHANH (SEGMENTED CONTROL LỘ DIỆN TRỰC TIẾP) ---
-current_page = st.segmented_control(
-    "⚡ CHỌN CHẾ ĐỘ SỬ DỤNG NHANH:",
-    options=["✨ Chữ thành Giọng nói (TTS)", "🔊 Giọng nói thành Chữ (STT)"],
-    default="✨ Chữ thành Giọng nói (TTS)"
-)
+# --- KHU VỰC 2 NÚT BẤM CHUYỂN CHẾ ĐỘ TRỰC TIẾP TRÊN MÀN HÌNH ---
+st.markdown("### ⚡ BẤM CHỌN CHẾ ĐỘ SỬ DỤNG:")
+col_nav1, col_nav2 = st.columns(2)
+
+with col_nav1:
+    # Nếu đang ở chế độ TTS, hiển thị thông báo đang kích hoạt bằng dấu mũi tên
+    tts_label = "▶️ ✨ CHỮ THÀNH GIỌNG (TTS)" if st.session_state.page_mode == "TTS" else "✨ CHỮ THÀNH GIỌNG (TTS)"
+    if st.button(tts_label, key="btn_nav_tts", use_container_width=True):
+        st.session_state.page_mode = "TTS"
+        st.rerun()
+
+with col_nav2:
+    # Nếu đang ở chế độ STT, hiển thị thông báo đang kích hoạt bằng dấu mũi tên
+    stt_label = "▶️ 🔊 GIỌNG THÀNH CHỮ (STT)" if st.session_state.page_mode == "STT" else "🔊 GIỌNG THÀNH CHỮ (STT)"
+    if st.button(stt_label, key="btn_nav_stt", use_container_width=True):
+        st.session_state.page_mode = "STT"
+        st.rerun()
 
 st.divider()
 
-# ==================== TRANG 1: CHỮ THÀNH GIỌNG NÓI (TTS) ====================
-if current_page == "✨ Chữ thành Giọng nói (TTS)":
-    st.markdown("### ✨ CHUYỂN VĂN BẢN THÀNH GIỌNG NÓI")
+# ==================== CHẾ ĐỘ 1: CHỮ THÀNH GIỌNG NÓI (TTS) ====================
+if st.session_state.page_mode == "TTS":
+    st.markdown("## ✨ CHẾ ĐỘ: VĂN BẢN THÀNH GIỌNG NÓI")
     
     if "history" not in st.session_state: 
         st.session_state.history = []
@@ -134,7 +144,9 @@ if current_page == "✨ Chữ thành Giọng nói (TTS)":
     with col_voice: voice_option = st.selectbox("👤 Chọn Giọng đọc (Voice Artist):", voice_list)
     loop_audio = st.checkbox("🔄 Bật hiệu ứng phát lặp lại liên tục (Loop Audio)")
     
-    if st.button("🔥 TIẾN HÀNH KHỞI TẠO GIỌNG NÓI AI", use_container_width=True):
+    # Sử dụng Class CSS action-btn để làm nổi bật nút khởi tạo giọng nói
+    st.markdown("<div class='action-btn'>", unsafe_allow_html=True)
+    if st.button("🔥 TIẾN HÀNH KHỞI TẠO GIỌNG NÓI AI", use_container_width=True, key="action_tts"):
         if text_input.strip() == "": 
             st.warning("Vui lòng nhập nội dung văn bản trước!")
         else:
@@ -187,15 +199,5 @@ if current_page == "✨ Chữ thành Giọng nói (TTS)":
                 st.audio(output_file, format="audio/mp3", loop=loop_audio)
                 with open(output_file, "rb") as f:
                     st.download_button(label="📥 TẢI XUỐNG FILE MP3 THÀNH PHẨM", data=f, file_name="ai_studio_voice.mp3", mime="audio/mp3", use_container_width=True)
-            else:
-                st.error("Không thể tạo giọng đọc cho cấu hình này. Bạn hãy thử đổi sang giọng đọc khác nhé!")
-
-    if st.session_state.history:
-        with st.expander("📜 Xem lịch sử các đoạn văn bản vừa tạo"):
-            for i, hist_text in enumerate(reversed(st.session_state.history)):
-                st.text(f"{i+1}. {hist_text[:100]}..." if len(hist_text) > 100 else f"{i+1}. {hist_text}")
-
-# ==================== TRANG 2: GIỌNG NÓI THÀNH CHỮ (STT) ====================
-elif current_page == "🔊 Giọng nói thành Chữ (STT)":
-    st.markdown("### 🔊 CHUYỂN GIỌNG NÓI THÀNH VĂN BẢN")
+else:
     
