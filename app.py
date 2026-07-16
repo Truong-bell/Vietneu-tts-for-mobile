@@ -53,33 +53,27 @@ st.markdown("""
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 25px rgba(127, 0, 255, 0.7) !important;
     }
-    /* Làm đẹp thanh Sidebar trượt */
-    section[data-testid="stSidebar"] {
-        background-color: #110c24 !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-# --- THANH MENU TRƯỢT SIDEBAR (TỰ ĐỘNG TẠO DẤU 3 GẠCH GÓC TRÊN TRÁI ĐIỆN THOẠI) ---
-with st.sidebar:
-    st.markdown("<h3 style='color:#ff4b2b !important; text-align:center;'>🎛️ MENU STUDIO</h3>", unsafe_allow_html=True)
-    st.caption("Chạm vào đây để đổi tính năng:")
-    
-    # Tạo menu chọn trang bằng nút Radio cao cấp trong thanh trượt
-    current_page = st.radio(
-        "Lựa chọn chức năng:",
-        ["✨ Chữ thành Giọng nói (TTS)", "🔊 Giọng nói thành Chữ (STT)"]
-    )
-    st.divider()
-    st.markdown("<p style='font-size:11px; text-align:center; color:#666 !important;'>AI Voice Studio v2.0</p>", unsafe_allow_html=True)
-
-# Tiêu đề chính trên trang
 st.markdown("<h1 class='studio-title'>🎙️ AI VOICE PRO STUDIO</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #a0a0d0 !important; font-size:14px; margin-bottom:25px;'>Hệ thống render âm thanh trí tuệ nhân tạo đa năng</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #a0a0d0 !important; font-size:14px; margin-bottom:20px;'>Hệ thống render âm thanh trí tuệ nhân tạo đa năng</p>", unsafe_allow_html=True)
+
+st.divider()
+
+# --- BỘ CHUYỂN ĐỔI CHỨC NĂNG LỘ DIỆN CHÍNH GIỮA MÀN HÌNH ---
+st.markdown("### 🛠️ LỰA CHỌN TÍNH NĂNG ỨNG DỤNG")
+current_page = st.selectbox(
+    "Bấm vào đây để chọn tính năng bạn muốn sử dụng:",
+    ["✨ Chữ thành Giọng nói (TTS)", "🔊 Giọng nói thành Chữ (STT)"]
+)
+
+st.divider()
 
 # ==================== TRANG 1: CHỮ THÀNH GIỌNG NÓI (TTS) ====================
 if "✨ Chữ thành Giọng nói" in current_page:
+    st.markdown("### ✨ CHUYỂN VĂN BẢN THÀNH GIỌNG NÓI")
+    
     if "history" not in st.session_state: 
         st.session_state.history = []
         
@@ -100,7 +94,7 @@ if "✨ Chữ thành Giọng nói" in current_page:
     st.progress(min(char_count / max_chars, 1.0))
     st.caption(f"Dung lượng bộ nhớ: **{char_count:,}** / **{max_chars:,}** ký tự tối đa.")
     
-    st.markdown("### 🎛️ BÀN TRỘN THIẾT KẾ GIỌNG ĐỌC")
+    st.markdown("#### 🎛️ BÀN TRỘN THIẾT KẾ GIỌNG ĐỌC")
     preset = st.radio("Chọn công thức giọng mẫu nhanh:", ["Mặc định", "Em bé", "Người già", "Quái vật", "Thủ công"], horizontal=True)
     if preset == "Mặc định": s_val, p_val = 0, 0
     elif preset == "Em bé": s_val, p_val = 15, 40
@@ -192,5 +186,13 @@ if "✨ Chữ thành Giọng nói" in current_page:
 
 # ==================== TRANG 2: GIỌNG NÓI THÀNH CHỮ (STT) ====================
 elif "🔊 Giọng nói thành Chữ" in current_page:
-    st.markdown("## 🔊 CHUYỂN GIỌNG NÓI THÀNH VĂN BẢN")
-        
+    st.markdown("### 🔊 CHUYỂN GIỌNG NÓI THÀNH VĂN BẢN")
+    st.caption("Tải lên file ghi âm để rã băng thành chữ có chia mốc thời gian (Timestamp) chính xác từng giây.")
+    
+    stt_lang = st.selectbox("🎯 Chọn ngôn ngữ nói trong file âm thanh:", ["Tiếng Việt (vi-VN)", "Tiếng Anh (en-US)", "Tiếng Hàn (ko-KR)", "Tiếng Nhật (ja-JP)"])
+    lang_code = "vi-VN"
+    if "Tiếng Anh" in stt_lang: lang_code = "en-US"
+    elif "Tiếng Hàn" in stt_lang: lang_code = "ko-KR"
+    elif "Tiếng Nhật" in stt_lang: lang_code = "ja-JP"
+
+                                                       
